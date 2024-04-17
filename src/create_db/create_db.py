@@ -118,7 +118,9 @@ def fill_tables(dbname: str, employer_ids: List[str]) -> None:
         # Вставка данных о компаниях
         company_names: Dict[int, str] = {vac['employer']['id']: vac['employer']['name'] for vac in vacancies}
         company_data: List[Tuple[int, str]] = [(id, name) for id, name in company_names.items()]
-        insert_query = "INSERT INTO companies (company_id, name) VALUES (%s, %s)"
+        insert_query = ("INSERT INTO companies (company_id, name) "
+                        "VALUES (%s, %s)"
+                        "ON CONFLICT (company_id) DO NOTHING")
         cur.executemany(insert_query, company_data)
 
         # Вставка данных о вакансиях
@@ -138,11 +140,13 @@ def fill_tables(dbname: str, employer_ids: List[str]) -> None:
 
         insert_query = (
             "INSERT INTO vacancies "
-            "(vacancy_id, company_id, title, salary_from, salary_to, link) VALUES (%s, %s, %s, %s, %s, %s)")
+            "(vacancy_id, company_id, title, salary_from, salary_to, link) "
+            "VALUES (%s, %s, %s, %s, %s, %s)"
+            "ON CONFLICT (vacancy_id) DO NOTHING")
         cur.executemany(insert_query, vacancy_data)
 
         conn.commit()
-        print(f"Данные успешно добавлены в таблицы базы данных {Color.GREEN}{dbname}{Color.END}'!")
+        print(f"Данные успешно добавлены в таблицы базы данных {Color.GREEN}{dbname}{Color.END}!")
     except (Exception, psycopg2.DatabaseError) as error:
         print("Ошибка при добавлении данных:", error)
     finally:

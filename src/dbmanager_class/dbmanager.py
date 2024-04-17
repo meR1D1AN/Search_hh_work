@@ -1,58 +1,116 @@
 import psycopg2
 import os
+from src.color.color import Color
+from typing import List, Tuple
 
-pas_sql = os.environ['SQLPASS']
+
+pas_sql: str = os.environ['SQLPASS']
 
 
 class DBManager:
-    def __init__(self, dbname="kur_5", user="postgres", password=pas_sql, host="localhost", port="5432"):
+    """
+    Инициализирует DBManager с предоставленными параметрами.
+    Параметры:
+        dbname (str): Название базы данных. По умолчанию "kur_5".
+        user (str): Имя пользователя для подключения к базе данных. По умолчанию "postgres".
+        password (str): Пароль для соединения с базой данных.
+        host (str): Адрес хоста базы данных. По умолчанию "localhost".
+        port (str): Номер порта базы данных. По умолчанию "5432".
+    """
+
+    def __init__(self, dbname: str, user: str = "postgres", password: str = pas_sql, host: str = "localhost",
+                 port: str = "5432") -> None:
         self.dbname = dbname
         self.user = user
         self.password = password
         self.host = host
         self.port = port
+        self.conn = None
+        self.cur = None
 
-    def connect(self):
+    def connect(self, dbname) -> None:
+        """
+        Подключается к базе данных PostgreSQL с использованием указанных параметров.
+        Эта функция устанавливает соединение с базой данных PostgreSQL, используя указанное имя базы данных,
+        имя пользователя, пароль, хост и порт. Если соединение успешно, то устанавливает атрибут `conn`
+        в объект соединения и атрибут `cur` в объект курсора. Также выводит сообщение об успешном подключении.
+        Если при попытке подключения возникает ошибка, выводит сообщение об ошибке с конкретным исключением.
+        Параметры:
+            self (DBManager): Экземпляр класса DBManager.
+        Возвращает:
+            None
+        """
         try:
             self.conn = psycopg2.connect(
-                dbname=self.dbname,
+                dbname=dbname,
                 user=self.user,
                 password=self.password,
                 host=self.host,
                 port=self.port
             )
             self.cur = self.conn.cursor()
-            print("Успешное подключение к базе данных!\n")
+            print(f"Успешное подключение к базе данных {Color.GREEN}{dbname}{Color.END}!\n")
         except (Exception, psycopg2.DatabaseError) as error:
             print("Ошибка при подключении к базе данных:", error)
 
-    def disconnect(self):
+    def disconnect(self) -> None:
+        """
+        Отключается от базы данных, если соединение уже установлено.
+        Параметры:
+            self (объект): Экземпляр класса.
+        Возвращает:
+            None
+        """
         if self.conn is not None:
             self.conn.close()
-            print("\nDisconnected from database.")
+            print("\nОтключение от базы данных.")
 
-    def close(self):
+    def close(self) -> None:
+        """
+        Закрывает соединение с базой данных, если оно открыто.
+        Эта функция проверяет, не является ли атрибут `conn` текущего объекта не равным None. Если это так,
+        то закрывает соединение с базой данных, вызывая метод `close()` для объекта `conn`. После закрытия
+        соединения выводит сообщение "Соединение с базой данных закрыто.".
+        Параметры:
+            self (object): Текущий объект.
+        Возвращает:
+            None
+        """
         if self.conn is not None:
             self.conn.close()
             print("Соединение с базой данных закрыто.")
 
-    def get_companies_and_vacancies_count(self):
+    def get_companies_and_vacancies_count(self) -> List[Tuple[str, int]]:
+        """
+        Получает имена компаний вместе с количеством вакансий, которые у них есть.
+        """
         self.cur.execute(
             "SELECT c.name, COUNT(v.vacancy_id) AS vacancies_count FROM companies c "
             "JOIN vacancies v ON c.company_id = v.company_id GROUP BY c.name")
         companies_and_vacancies = self.cur.fetchall()
         return companies_and_vacancies
 
-    def get_all_vacancies(self):
+    def get_all_vacancies(self) -> List[Tuple[str, str, str, str]]:
+        """
+        Получает все вакансии из базы данных, включая название компании, название вакансии, зарплату и ссылку.
+        Возвращает:
+            list: Список кортежей, где каждый кортеж содержит название компании, название вакансии, зарплату и ссылку.
+        """
         self.cur.execute(
-            "SELECT c.name, v.title, v.salary_from, v.link FROM companies c "
+            "SELECT c.name, v.title, v.salary_from, v.salary_to, v.link FROM companies c "
             "JOIN vacancies v ON c.company_id = v.company_id")
         all_vacancies = self.cur.fetchall()
         return all_vacancies
 
-    def get_avg_salary(self):
+    def get_avg_salary(self) -> float:
+        """
+        Вычисляет среднюю зарплату из столбца 'salary_from' таблицы 'vacancies'.
+        Возвращает:
+            float: Средняя зарплата, округленная до 2 знаков после запятой.
+        """
         query = """
-                SELECT AVG(CASE WHEN salary_from = 'Зарплата не указана' THEN NULL ELSE CAST(salary_from AS INTEGER) END)
+                SELECT AVG(CASE WHEN salary_from = 'Зарплата не указана' 
+                THEN NULL ELSE CAST(salary_from AS INTEGER) END) 
                 FROM vacancies
                 WHERE salary_from != 'Зарплата не указана'
                 """
@@ -60,9 +118,14 @@ class DBManager:
         avg_salary = self.cur.fetchone()[0]
         return round(avg_salary, 2)
 
-    def get_vacancies_with_higher_salary(self):
+    def get_vacancies_with_higher_salary(self) -> List[Tuple[str, str, str, str]]:
+        """
+        Извлекает вакансии с более высокой зарплатой.
+        Возвращает:
+            list: Список кортежей, где каждый кортеж содержит название компании, название вакансии, зарплату и ссылку.
+        """
         self.cur.execute(
-            "SELECT c.name, v.title, v.salary_from, v.link "
+            "SELECT c.name, v.title, v.salary_from, v.salary_to, v.link "
             "FROM companies c JOIN vacancies v ON c.company_id = v.company_id "
             "WHERE CASE WHEN v.salary_from != 'Зарплата не указана' THEN CAST(v.salary_from AS INTEGER) ELSE 0 END > "
             "(SELECT AVG(CASE WHEN salary_from != 'Зарплата не указана' "
@@ -71,7 +134,15 @@ class DBManager:
         higher_salary_vacancies = self.cur.fetchall()
         return higher_salary_vacancies
 
-    def get_vacancies_with_keyword(self, keyword):
+    def get_vacancies_with_keyword(self, keyword: str) -> List[Tuple[str, str, str, str]]:
+        """
+        Получает вакансии с указанным ключевым словом из базы данных.
+        Параметры:
+            keyword (str): Ключевое слово для поиска в названиях вакансий.
+        Возвращает:
+            List[Tuple]: Список кортежей, содержащих название компании, название вакансии, начальную зарплату и
+            ссылку на каждую вакансию, которая совпадает с ключевым словом.
+        """
         self.cur.execute(
             f"SELECT c.name, v.title, v.salary_from, v.link FROM companies c "
             f"JOIN vacancies v ON c.company_id = v.company_id WHERE v.title ILIKE %s",
@@ -80,30 +151,7 @@ class DBManager:
         return vacancies_with_keyword
 
 
-if __name__ == "__main__":
-    db_manager = DBManager(dbname="kur_5", user="postgres", password=pas_sql, host="localhost", port="5432")
-    db_manager.connect()
-
-    # print("Компании и кол-во вакансий:")
-    # companies_and_vacancies = db_manager.get_companies_and_vacancies_count()
-    # for company, vacancies_count in companies_and_vacancies:
-    #     print(f'{company}: {vacancies_count} вакансий')
-
-    # print("\nСписок всех вакансий:")
-    # all_vacancy = db_manager.get_all_vacancies()
-    # for company, title, salary, link in all_vacancy:
-    #     print(f'{company}: {title} - {salary} - {link}')
-
-    # print("\nСредняя зарплата:")
-    # print(db_manager.get_avg_salary())
-
-    # print("\nВакансии с зарплатой выше среднего:")
-    # high_avg = db_manager.get_vacancies_with_higher_salary()
-    # for company, title, salary, link in high_avg:
-    #     print(f'{company}: {title} - {salary} - {link}')
-
-    # print("\nВакансии в названии которых есть слово 'python':")
-    # vacancies_with_keyword = db_manager.get_vacancies_with_keyword("python")
-    # for company, title, salary, link in vacancies_with_keyword:
-    #     print(f'{company}: {title} - {salary} - {link}')
-    db_manager.disconnect()
+# if __name__ == '__main__':
+#     db_manager = DBManager(dbname="kur_5", user='postgres', password=pas_sql, host='localhost', port='5432')
+#     db_manager.connect()
+#     db_manager.disconnect()

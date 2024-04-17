@@ -30,10 +30,17 @@ def main():
     5. Поиск вакансий по ключевому слову.
     0. Выход из программы.
     Функция непрерывно отображает меню и выполняет выбранную пользователем операцию на основе его выбора.
-    После того,как пользователь выбирает выйти, функция отключается от менеджера базы данных.
+    После того, как пользователь выбирает выйти, функция отключается от менеджера базы данных.
     """
-    db_manager = DBManager()
-    db_manager.connect()
+    dbname = input("Введите имя базы данных: ")
+    create_database(dbname)
+    create_tables(dbname)
+
+    #  Выбраны 10 компаний
+    fill_tables(dbname, ['3529', '78638', '80', '673', '8988088', '4181', '2748', '3776', '1740', '15478'])
+
+    db_manager = DBManager(dbname=dbname)
+    db_manager.connect(dbname=dbname)
 
     while True:
         print_menu()
@@ -48,8 +55,16 @@ def main():
         elif choice == "2":
             all_vacancies = db_manager.get_all_vacancies()
             print("\nСписок всех вакансий:")
-            for company, title, salary, link in all_vacancies:
-                print(f"{company}: {title} - {Color.U}{salary}{Color.U_} - {link}")
+            for company, title, salary_from, salary_to, link in all_vacancies:
+                if salary_from == "Зарплата не указана":
+                    print(f"{company}: {title} - {Color.U}{salary_from}{Color.U_} - {link}")
+                elif salary_to is None:
+                    print(f"{company}: {title} - {Color.U}{salary_from}{Color.U_} - {link}")
+                elif salary_from == "null":
+                    print(f"{company}: {title} - {Color.U}{salary_to}{Color.U_} - {link}")
+                else:
+                    print(f"{company}: {title} - "
+                          f"{Color.U}{salary_from}{Color.U_}-{Color.U}{salary_to}{Color.U_} - {link}")
 
         elif choice == "3":
             avg_salary = db_manager.get_avg_salary()
@@ -58,8 +73,14 @@ def main():
         elif choice == "4":
             high_salary_vacancies = db_manager.get_vacancies_with_higher_salary()
             print("\nВакансии с зарплатой выше среднего:")
-            for company, title, salary, link in high_salary_vacancies:
-                print(f"{company}: {title} - {Color.U}{salary}{Color.U_} - {link}")
+            for company, title, salary_from, salary_to, link in high_salary_vacancies:
+                if salary_to is None:
+                    print(f"{company}: {title} - {Color.U}{salary_from}{Color.U_} - {link}")
+                elif salary_from == "null":
+                    print(f"{company}: {title} - {Color.U}{salary_to}{Color.U_} - {link}")
+                else:
+                    print(f"{company}: {title} - "
+                          f"{Color.U}{salary_from}{Color.U_}-{Color.U}{salary_to}{Color.U_} - {link}")
 
         elif choice == "5":
             keyword = input("Введите слово для поиска: ")
@@ -81,9 +102,4 @@ def main():
 
 
 if __name__ == "__main__":
-    dbname = input("Введите имя базы данных: ")
-    create_database(dbname)
-    create_tables(dbname)
-    # Выбраны 10 компаний
-    fill_tables(dbname, ['3529', '78638', '80', '673', '8988088', '4181', '2748', '3776', '1740', '15478'])
     main()
