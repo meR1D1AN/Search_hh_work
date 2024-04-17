@@ -33,8 +33,8 @@ def main():
     После того, как пользователь выбирает выйти, функция отключается от менеджера базы данных.
     """
     dbname = input("Введите имя базы данных: ")
-    create_database(dbname)
-    create_tables(dbname)
+    # create_database(dbname)
+    # create_tables(dbname)
 
     #  Выбраны 10 компаний
     fill_tables(dbname, ['3529', '78638', '80', '673', '8988088', '4181', '2748', '3776', '1740', '15478'])

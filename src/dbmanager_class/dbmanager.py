@@ -3,7 +3,6 @@ import os
 from src.color.color import Color
 from typing import List, Tuple
 
-
 pas_sql: str = os.environ['SQLPASS']
 
 
@@ -149,9 +148,3 @@ class DBManager:
             (f'%{keyword}%',))
         vacancies_with_keyword = self.cur.fetchall()
         return vacancies_with_keyword
-
-
-# if __name__ == '__main__':
-#     db_manager = DBManager(dbname="kur_5", user='postgres', password=pas_sql, host='localhost', port='5432')
-#     db_manager.connect()
-#     db_manager.disconnect()
