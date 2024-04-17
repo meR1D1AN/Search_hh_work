@@ -62,6 +62,7 @@ class DBManager:
         """
         if self.conn is not None:
             self.conn.close()
+            self.conn = None
             print("\nОтключение от базы данных.")
 
     def close(self) -> None:
@@ -77,6 +78,7 @@ class DBManager:
         """
         if self.conn is not None:
             self.conn.close()
+            self.conn = None
             print("Соединение с базой данных закрыто.")
 
     def get_companies_and_vacancies_count(self) -> List[Tuple[str, int]]:
@@ -115,7 +117,10 @@ class DBManager:
                 """
         self.cur.execute(query)
         avg_salary = self.cur.fetchone()[0]
-        return round(avg_salary, 2)
+        if avg_salary is not None:
+            return round(avg_salary, 2)
+        else:
+            return None
 
     def get_vacancies_with_higher_salary(self) -> List[Tuple[str, str, str, str]]:
         """
