@@ -1,8 +1,9 @@
 import requests
+from typing import List, Dict, Union
 from src.color.color import Color
 
 
-def get_vacancies_by_employer_ids(employer_ids):
+def get_vacancies_by_employer_ids(employer_ids: List[int]) -> List[Dict[str, Union[str, int]]]:
     """
     Получает вакансии по идентификаторам работодателей.
     Описание:
@@ -14,11 +15,11 @@ def get_vacancies_by_employer_ids(employer_ids):
         Функция возвращает список полученных вакансий.
     """
     url = 'https://api.hh.ru/vacancies'
-    all_vacancies = []
+    all_vacancies: List[Dict[str, Union[str, int]]] = []
 
-    page = 0
-    per_page = 100  # Максимальное количество вакансий на одной странице
-    max_page = 19  # Максимальное количество страниц с вакансиями, потом ошибка 400
+    page: int = 0
+    per_page: int = 100  # Максимальное количество вакансий на одной странице
+    max_page: int = 19  # Максимальное количество страниц с вакансиями, потом ошибка 400
 
     while page < max_page:
         params = {'employer_id': employer_ids, 'per_page': per_page, 'page': page}
@@ -29,6 +30,8 @@ def get_vacancies_by_employer_ids(employer_ids):
             vacancies_on_page = data['items']
             all_vacancies.extend(vacancies_on_page)
             page += 1
+            per_page = data.get('per_page', 100)
+            max_page = data.get('pages', 19)
         else:
             print(f'Ошибка при получении данных со страницы '
                   f'{Color.RED}{page}{Color.END}: {Color.RED}{response.status_code}{Color.END}')
