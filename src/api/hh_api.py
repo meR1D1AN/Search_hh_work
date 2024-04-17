@@ -30,8 +30,7 @@ def get_vacancies_by_employer_ids(employer_ids: List[int]) -> List[Dict[str, Uni
             vacancies_on_page = data['items']
             all_vacancies.extend(vacancies_on_page)
             page += 1
-            per_page = data.get('per_page', 100)
-            max_page = data.get('pages', 19)
+
         else:
             print(f'Ошибка при получении данных со страницы '
                   f'{Color.RED}{page}{Color.END}: {Color.RED}{response.status_code}{Color.END}')
