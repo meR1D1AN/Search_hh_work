@@ -1,12 +1,13 @@
 import os
 import psycopg2
+from typing import List, Dict, Union, Tuple
 from src.color.color import Color
 from src.api.hh_api import get_vacancies_by_employer_ids
 
 password = os.environ['SQLPASS']
 
 
-def create_database(dbname):
+def create_database(dbname: str) -> None:
     """
     Функция, которая создаёт базу данных с указанным именем в PostgreSQL
     """
@@ -31,7 +32,7 @@ def create_database(dbname):
         print(f"База данных {Color.RED}{dbname}{Color.END} уже существует!")
 
 
-def create_tables(dbname):
+def create_tables(dbname: str) -> None:
     """
     Создает таблицы в указанной базе данных.
     Вызывает исключение:
@@ -47,7 +48,7 @@ def create_tables(dbname):
     таблиц или подключении к базе данных, вызывается соответствующее исключение. Наконец, функция закрывает
     соединение с базой данных.
     """
-    commands = (
+    commands: List[str] = (
         """
         CREATE TABLE IF NOT EXISTS companies (
             company_id SERIAL PRIMARY KEY,
@@ -91,7 +92,7 @@ def create_tables(dbname):
             conn.close()
 
 
-def fill_tables(dbname, employer_ids):
+def fill_tables(dbname: str, employer_ids: List[str]) -> None:
     """
     Заполняет таблицы в указанной базе данных данными, полученными из API.
     Вызывает:
@@ -101,7 +102,7 @@ def fill_tables(dbname, employer_ids):
         Сообщение об успешном добавлении данных в таблицы, если операция прошла успешно.
         Сообщение об ошибке, если произошла ошибка при добавлении данных.
     """
-    vacancies = get_vacancies_by_employer_ids(employer_ids)
+    vacancies: List[Dict[str, Union[str, int]]] = get_vacancies_by_employer_ids(employer_ids)
 
     try:
         # Подключение к базе данных с введённым именем
@@ -115,13 +116,13 @@ def fill_tables(dbname, employer_ids):
         cur = conn.cursor()
 
         # Вставка данных о компаниях
-        company_names = {vac['employer']['id']: vac['employer']['name'] for vac in vacancies}
-        company_data = [(id, name) for id, name in company_names.items()]
+        company_names: Dict[int, str] = {vac['employer']['id']: vac['employer']['name'] for vac in vacancies}
+        company_data: List[Tuple[int, str]] = [(id, name) for id, name in company_names.items()]
         insert_query = "INSERT INTO companies (company_id, name) VALUES (%s, %s)"
         cur.executemany(insert_query, company_data)
 
         # Вставка данных о вакансиях
-        vacancy_data = []
+        vacancy_data: List[Tuple[int, int, str, str, str, str]] = []
         for vac in vacancies:
             vacancy_id = vac['id']
             company_id = vac['employer']['id']
