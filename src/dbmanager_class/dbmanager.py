@@ -148,7 +148,7 @@ class DBManager:
             ссылку на каждую вакансию, которая совпадает с ключевым словом.
         """
         self.cur.execute(
-            f"SELECT c.name, v.title, v.salary_from, v.link FROM companies c "
+            f"SELECT c.name, v.title, v.salary_from, v.salary_to, v.link FROM companies c "
             f"JOIN vacancies v ON c.company_id = v.company_id WHERE v.title ILIKE %s",
             (f'%{keyword}%',))
         vacancies_with_keyword = self.cur.fetchall()

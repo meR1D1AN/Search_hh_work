@@ -32,15 +32,16 @@ def main():
     Функция непрерывно отображает меню и выполняет выбранную пользователем операцию на основе его выбора.
     После того, как пользователь выбирает выйти, функция отключается от менеджера базы данных.
     """
-
     while True:
         dbname = input("Введите имя базы данных: ")
-        if not dbname[0].isdigit():
+        if not dbname[0].isdigit() and dbname.isascii() and dbname[0].islower():
             break
         else:
-            print(f"\t{Color.RED}Первый символ имени базы данных PostgreSQL не может быть цифрой. Он должен быть "
-                  f"буквой, подчеркиванием или долларом ($). Это ограничение синтаксиса SQL. {Color.END}"
-                  f"\n\t{Color.GREEN}Поэтому введите повторно имя базы данных.{Color.END}")
+            print(f"{Color.RED}Первый символ имени базы данных PostgreSQL не может быть:"
+                  f"\n\tЦифрой, заглавной буквой, кириллицей(полностью).{Color.END}"
+                  f"\n{Color.GREEN}Он может быть:"
+                  f"\n\tЛатинской буквой, подчеркиванием или долларом ($).{Color.END}"
+                  f"\n{Color.RED}Это ограничение синтаксиса SQL.\nПоэтому введите повторно имя базы данных.{Color.END}")
     create_database(dbname)
     create_tables(dbname)
 
@@ -66,36 +67,55 @@ def main():
             for company, title, salary_from, salary_to, link in all_vacancies:
                 if salary_from == "Зарплата не указана":
                     print(f"{company}: {title} - {Color.U}{salary_from}{Color.U_} - {link}")
+                elif salary_from == salary_to:
+                    print(f"{company}: {title} - {Color.U}{salary_from} руб.{Color.U_} - {link}")
+                elif salary_from is None:
+                    print(f"{company}: {title} - {Color.U}{salary_to} руб.{Color.U_} - {link}")
                 elif salary_to is None:
-                    print(f"{company}: {title} - {Color.U}{salary_from}{Color.U_} - {link}")
-                elif salary_from == "null":
-                    print(f"{company}: {title} - {Color.U}{salary_to}{Color.U_} - {link}")
+                    print(f"{company}: {title} - {Color.U}{salary_from} руб.{Color.U_} - {link}")
                 else:
                     print(f"{company}: {title} - "
-                          f"{Color.U}{salary_from}{Color.U_}-{Color.U}{salary_to}{Color.U_} - {link}")
+                          f"{Color.U}{salary_from}{Color.U_} - {Color.U}{salary_to} руб.{Color.U_} - {link}")
 
         elif choice == "3":
             avg_salary = db_manager.get_avg_salary()
-            print(f"\nСредняя зарплата: {Color.U}{avg_salary}{Color.U_}")
+            print(f"\nСредняя зарплата: {Color.U}{avg_salary} руб.{Color.U_}")
 
         elif choice == "4":
             high_salary_vacancies = db_manager.get_vacancies_with_higher_salary()
             print("\nВакансии с зарплатой выше среднего:")
             for company, title, salary_from, salary_to, link in high_salary_vacancies:
-                if salary_to is None:
-                    print(f"{company}: {title} - {Color.U}{salary_from}{Color.U_} - {link}")
-                elif salary_from == "null":
-                    print(f"{company}: {title} - {Color.U}{salary_to}{Color.U_} - {link}")
+                if salary_from is None:
+                    print(f"{company}: {title} - {Color.U}{salary_to} руб.{Color.U_} - {link}")
+                elif salary_to is None:
+                    print(f"{company}: {title} - {Color.U}{salary_from} руб.{Color.U_} - {link}")
+                elif salary_from == salary_to:
+                    print(f"{company}: {title} - {Color.U}{salary_from} руб.{Color.U_} - {link}")
                 else:
                     print(f"{company}: {title} - "
-                          f"{Color.U}{salary_from}{Color.U_}-{Color.U}{salary_to}{Color.U_} - {link}")
+                          f"{Color.U}{salary_from}{Color.U_} - {Color.U}{salary_to} руб.{Color.U_} - {link}")
 
         elif choice == "5":
             keyword = input("Введите слово для поиска: ")
             vacancies_with_keyword = db_manager.get_vacancies_with_keyword(keyword)
             print(f"\nВакансии с названием, содержащим слово '{Color.GREEN}{keyword}{Color.END}':")
-            for company, title, salary, link in vacancies_with_keyword:
-                print(f"{company}: {title} - {Color.U}{salary}{Color.U_} - {link}")
+
+            if not vacancies_with_keyword:
+                print(f"\nВакансии с названием, содержащим слово '{Color.GREEN}{keyword}{Color.END}' "
+                      f"{Color.RED}не найдены.{Color.END}")
+            else:
+                for company, title, salary_from, salary_to, link in vacancies_with_keyword:
+                    if salary_from == "Зарплата не указана":
+                        print(f"{company}: {title} - {Color.U}{salary_from}{Color.U_} - {link}")
+                    elif salary_from is None:
+                        print(f"{company}: {title} - {Color.U}{salary_to} руб.{Color.U_} - {link}")
+                    elif salary_to is None:
+                        print(f"{company}: {title} - {Color.U}{salary_from} руб.{Color.U_} - {link}")
+                    elif salary_from == salary_to:
+                        print(f"{company}: {title} - {Color.U}{salary_from} руб.{Color.U_} - {link}")
+                    else:
+                        print(f"{company}: {title} - "
+                              f"{Color.U}{salary_from}{Color.U_} - {Color.U}{salary_to} руб.{Color.U_} - {link}")
 
         elif choice == "0":
             print(f"{Color.GREEN}Программа завершена.{Color.END}")
