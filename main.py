@@ -34,6 +34,7 @@ def main():
     """
     while True:
         dbname = input("Введите имя базы данных: ")
+        #  Проверка ввода имени базы, если первая цифра, или кириллица, заглавная буква, выдаст ошибку
         if not dbname[0].isdigit() and dbname.isascii() and dbname[0].islower():
             break
         else:
