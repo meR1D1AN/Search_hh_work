@@ -46,7 +46,7 @@ def main():
     create_tables(dbname)
 
     #  Выбраны 10 компаний
-    fill_tables(dbname, ['3529', '78638', '80', '673', '1280', '4181', '2748', '3776', '1740', '15478'])
+    fill_tables(dbname, ['3529', '78638', '80', '673', '2180', '4181', '2748', '3776', '1740', '15478'])
 
     db_manager = DBManager(dbname=dbname)
     db_manager.connect(dbname=dbname)

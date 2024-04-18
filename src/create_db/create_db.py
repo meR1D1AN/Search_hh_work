@@ -1,6 +1,6 @@
 import os
 import psycopg2
-from typing import List, Dict
+from typing import List, Dict, Union, Tuple
 from src.color.color import Color
 from src.api.hh_api import get_vacancies_by_employer_ids
 
@@ -93,7 +93,7 @@ def create_tables(dbname: str) -> None:
             conn.close()
 
 
-def fill_tables(dbname: str, employer_ids: List[int]) -> None:
+def fill_tables(dbname: str, employer_ids: List[str]) -> None:
     """
     Заполняет таблицы в указанной базе данных данными, полученными из API.
     Вызывает:
@@ -103,7 +103,7 @@ def fill_tables(dbname: str, employer_ids: List[int]) -> None:
         Сообщение об успешном добавлении данных в таблицы, если операция прошла успешно.
         Сообщение об ошибке, если произошла ошибка при добавлении данных.
     """
-    vacancies: List[Dict[str, str]] = get_vacancies_by_employer_ids(employer_ids)
+    vacancies: List[Dict[str, Union[str, int]]] = get_vacancies_by_employer_ids(employer_ids)
 
     try:
         # Подключение к базе данных с введённым именем
@@ -117,13 +117,15 @@ def fill_tables(dbname: str, employer_ids: List[int]) -> None:
         cur = conn.cursor()
 
         # Вставка данных о компаниях
-        company_names = {vac['employer']['id']: vac['employer']['name'] for vac in vacancies}
-        company_data = [(id, name) for id, name in company_names.items()]
-        insert_query = "INSERT INTO companies (company_id, name) VALUES (%s, %s)"
+        company_names: Dict[int, str] = {vac['employer']['id']: vac['employer']['name'] for vac in vacancies}
+        company_data: List[Tuple[int, str]] = [(id, name) for id, name in company_names.items()]
+        insert_query = ("INSERT INTO companies (company_id, name) "
+                        "VALUES (%s, %s)"
+                        "ON CONFLICT (company_id) DO NOTHING")
         cur.executemany(insert_query, company_data)
 
         # Вставка данных о вакансиях
-        vacancy_data = []
+        vacancy_data: List[Tuple[int, int, str, str, str, str]] = []
         for vac in vacancies:
             vacancy_id = vac['id']
             company_id = vac['employer']['id']
@@ -139,13 +141,15 @@ def fill_tables(dbname: str, employer_ids: List[int]) -> None:
 
         insert_query = (
             "INSERT INTO vacancies "
-            "(vacancy_id, company_id, title, salary_from, salary_to, link) VALUES (%s, %s, %s, %s, %s, %s)")
+            "(vacancy_id, company_id, title, salary_from, salary_to, link) "
+            "VALUES (%s, %s, %s, %s, %s, %s)"
+            "ON CONFLICT (vacancy_id) DO NOTHING")
         cur.executemany(insert_query, vacancy_data)
 
         conn.commit()
-        print(f"Данные успешно добавлены в таблицы базы данных {Color.GREEN}{dbname}{Color.END}'!")
+        print(f"Данные успешно добавлены в таблицы базы данных {Color.GREEN}{dbname}{Color.END}!")
     except (Exception, psycopg2.DatabaseError) as error:
-        print("Ошибка при добавлении данных:", error)
+        print(f"{Color.RED}Ошибка при добавлении данных:{Color.END}", error)
     finally:
         if conn is not None:
             conn.close()
