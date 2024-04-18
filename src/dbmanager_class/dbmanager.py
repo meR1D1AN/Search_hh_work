@@ -17,7 +17,7 @@ class DBManager:
         port (str): Номер порта базы данных. По умолчанию "5432".
     """
 
-    def __init__(self, dbname: str, user: str = "postgres", password: str = pas_sql, host: str = "localhost",
+    def __init__(self, dbname: str, user: str, password: str = pas_sql, host: str = "localhost",
                  port: str = "5432") -> None:
         self.dbname = dbname
         self.user = user
