@@ -3,8 +3,8 @@ import os
 from src.color.color import Color
 from typing import List, Tuple
 
-pas_sql: str = os.environ.get['SQLPASS']
-user_sql: str = os.environ.get['SQLUSER']
+pas_sql: str = os.environ.get('SQLPASS')
+user_sql: str = os.environ.get('SQLUSER')
 
 
 class DBManager:

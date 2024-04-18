@@ -4,8 +4,8 @@ from typing import List, Dict
 from src.color.color import Color
 from src.api.hh_api import get_vacancies_by_employer_ids
 
-password = os.environ.get['SQLPASS']
-user_sql = os.environ.get['SQLUSER']
+pas_sql: str = os.environ.get('SQLPASS')
+user_sql: str = os.environ.get('SQLUSER')
 
 
 def create_database(dbname: str) -> None:
@@ -16,7 +16,7 @@ def create_database(dbname: str) -> None:
         # Подключение к серверу PostgreSQL без указания базы данных
         conn = psycopg2.connect(
             user=user_sql,
-            password=password,
+            password=pas_sql,
             host="localhost",
             port="5432"
         )
@@ -74,7 +74,7 @@ def create_tables(dbname: str) -> None:
         conn = psycopg2.connect(
             dbname=dbname,
             user=user_sql,
-            password=password,
+            password=pas_sql,
             host="localhost",
             port="5432"
         )
@@ -110,7 +110,7 @@ def fill_tables(dbname: str, employer_ids: List[int]) -> None:
         conn = psycopg2.connect(
             dbname=dbname,
             user=user_sql,
-            password=password,
+            password=pas_sql,
             host="localhost",
             port="5432"
         )
