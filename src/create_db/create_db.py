@@ -148,7 +148,7 @@ def fill_tables(dbname: str, employer_ids: List[str]) -> None:
         conn.commit()
         print(f"Данные успешно добавлены в таблицы базы данных {Color.GREEN}{dbname}{Color.END}!")
     except (Exception, psycopg2.DatabaseError) as error:
-        print("Ошибка при добавлении данных:", error)
+        print(f"{Color.RED}Ошибка при добавлении данных:{Color.END}", error)
     finally:
         if conn is not None:
             conn.close()
