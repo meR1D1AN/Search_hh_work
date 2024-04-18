@@ -41,7 +41,7 @@ class DBManager:
         """
         try:
             self.conn = psycopg2.connect(
-                dbname=dbname,
+                dbname=self.dbname,
                 user=self.user,
                 password=self.password,
                 host=self.host,
