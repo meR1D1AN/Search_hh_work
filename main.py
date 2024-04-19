@@ -41,7 +41,7 @@ def main():
             print(f"{Color.RED}Первый символ имени базы данных PostgreSQL не может быть:"
                   f"\n\tЦифрой, заглавной буквой, кириллицей(полностью).{Color.END}"
                   f"\n{Color.GREEN}Он может быть:"
-                  f"\n\tЛатинской буквой, подчеркиванием или долларом ($).{Color.END}"
+                  f"\n\tЛатинской буквой, подчеркиванием.{Color.END}"
                   f"\n{Color.RED}Это ограничение синтаксиса SQL.\nПоэтому введите повторно имя базы данных.{Color.END}")
     create_database(dbname)
     create_tables(dbname)
