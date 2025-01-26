@@ -6,7 +6,7 @@
 
 1. Склонируйте репозиторий на локальный компьютер:
 
-   `git clone https://github.com/meR1D1AN/kur_5`
+   `git clone https://github.com/meR1D1AN/search_hh_work`
 
 2. Установите зависимости, выполнив команду:
 
